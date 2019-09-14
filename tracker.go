@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 )
 
 type Tracker struct {
+	mtx       sync.Mutex
 	actual    map[string]interface{}
 	fields    []string
 	startTime int64
@@ -27,6 +29,9 @@ func (t *Tracker) track(update *map[string]interface{}) {
 }
 
 func (t *Tracker) trackOne(key string, value interface{}) {
+	t.mtx.Lock()
+	defer t.mtx.Unlock()
+
 	if t.actual == nil {
 		t.actual = make(map[string]interface{})
 	}
@@ -47,6 +52,9 @@ func (t *Tracker) prepareAndPrintHeader() {
 }
 
 func (t *Tracker) printData() {
+	t.mtx.Lock()
+	defer t.mtx.Unlock()
+
 	for n, k := range t.fields {
 		switch t.actual[k].(type) {
 		default:
