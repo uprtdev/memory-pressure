@@ -6,8 +6,10 @@ package main
 import "C"
 
 import (
+	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
@@ -26,6 +28,17 @@ type ActiveObserver interface {
 }
 
 func main() {
+	var blockSizeInMb = 128
+	params := os.Args[1:]
+	if len(params) > 0 {
+		userBlockSize, err := strconv.ParseInt(params[0], 10, 64)
+		if err == nil {
+			blockSizeInMb = int(userBlockSize)
+		} else {
+			log.Printf("Failed to parse block size: '%v'", params[0])
+		}
+	}
+
 	r := FileReader{}
 	t := Tracker{}
 	t.prepare()
@@ -43,6 +56,15 @@ func main() {
 	activeObservers = append(activeObservers, &CgroupsObserver{})
 	for _, element := range activeObservers {
 		element.Initialize(&t, r, notifySink)
+	}
+
+	if blockSizeInMb > 0 {
+		log.Printf("Using block size %v Mb", blockSizeInMb)
+		a := Allocator{}
+		a.initialize(&t)
+		go a.startMemoryFilling(blockSizeInMb)
+	} else {
+		log.Printf("Working in a passive mode, will not allocate memory during the test")
 	}
 
 	t.prepareAndPrintHeader()
