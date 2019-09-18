@@ -25,6 +25,18 @@ func TestCalculateSwapFaultsSimple(t *testing.T) {
 	}
 }
 
+func TestCalculateSwapFaultsNullDelta(t *testing.T) {
+	var ewma = 100.0
+	const halfLife = 100
+	o := SwapObserver{nil, nil, 1000, swapFaultsValues{0, ewma, 0, 0, 0}, halfLife}
+	step1results := o.calculateSwapFaults(1, halfLife)
+	o.oldValues = step1results
+	step2results := o.calculateSwapFaults(2, halfLife)
+	if !floatsEqual(step2results.currentFaultsPerSecond, step1results.currentFaultsPerSecond) {
+		t.Fatalf("Wrong null delta EWMA page faults calculations: expected %f, got %f", step1results.currentFaultsPerSecond, step2results.currentFaultsPerSecond)
+	}
+}
+
 func TestCalculateSwapFaultStepped(t *testing.T) {
 	var ewma = 100.0
 	const halfLife = 100

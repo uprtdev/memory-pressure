@@ -93,13 +93,18 @@ func (o *SwapObserver) calculateSwapFaults(newMajorPageFaults int64, newUserExec
 	deltaMajorPageFaults :=
 		float64(newMajorPageFaults - o.oldValues.lastMajorPageFaults)
 
-	values.sampledFaultsPerSecond =
-		deltaMajorPageFaults / deltaUserExecTime
-	adjustedEwmaCoefficient :=
-		1 - math.Exp2(-deltaUserExecTime/o.lowPassHalfLifeSeconds)
-	values.currentFaultsPerSecond =
-		adjustedEwmaCoefficient*values.sampledFaultsPerSecond +
-			(1-adjustedEwmaCoefficient)*o.oldValues.currentFaultsPerSecond
+	if deltaUserExecTime > 0 {
+		values.sampledFaultsPerSecond =
+			deltaMajorPageFaults / deltaUserExecTime
+		adjustedEwmaCoefficient :=
+			1 - math.Exp2(-deltaUserExecTime/o.lowPassHalfLifeSeconds)
+		values.currentFaultsPerSecond =
+			adjustedEwmaCoefficient*values.sampledFaultsPerSecond +
+				(1-adjustedEwmaCoefficient)*o.oldValues.currentFaultsPerSecond
+	} else {
+		values.sampledFaultsPerSecond = o.oldValues.sampledFaultsPerSecond
+		values.currentFaultsPerSecond = o.oldValues.currentFaultsPerSecond
+	}
 
 	values.lastUserTime = newUserExecTime
 	values.lastMajorPageFaults = newMajorPageFaults
