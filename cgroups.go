@@ -59,8 +59,8 @@ func (o *CgroupsObserver) Initialize(t *Tracker, r Reader, c chan bool) {
 	o.tracker = t
 	o.notifyChan = c
 	o.oldPressure = 0xFF
-	o.reportPressureIfChanged()
 	var err error
+	atLeastOne := false
 
 	o.lowEventFd, err = o.createFd()
 	if err == nil {
@@ -69,6 +69,7 @@ func (o *CgroupsObserver) Initialize(t *Tracker, r Reader, c chan bool) {
 	if err != nil {
 		log.Print(err)
 	} else {
+		atLeastOne = true
 		go o.startCheckingPressure(o.lowEventFd, &o.lowLevel)
 	}
 
@@ -79,6 +80,7 @@ func (o *CgroupsObserver) Initialize(t *Tracker, r Reader, c chan bool) {
 	if err != nil {
 		log.Print(err)
 	} else {
+		atLeastOne = true
 		go o.startCheckingPressure(o.mediumEventFd, &o.mediumLevel)
 	}
 
@@ -89,7 +91,12 @@ func (o *CgroupsObserver) Initialize(t *Tracker, r Reader, c chan bool) {
 	if err != nil {
 		log.Print(err)
 	} else {
+		atLeastOne = true
 		go o.startCheckingPressure(o.criticalEventFd, &o.criticalLevel)
+	}
+
+	if atLeastOne == true {
+		o.reportPressureIfChanged()
 	}
 }
 
