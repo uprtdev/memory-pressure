@@ -39,7 +39,7 @@ func (f *Allocator) initialize(t *Tracker, initialBlockSizeMb int) {
 
 func (f *Allocator) startMemoryFilling(blockSizeInMb int, period time.Duration, limit int) {
 	ticker := time.NewTicker(period)
-	for f.total < limit {
+	for f.total < limit || limit == 0 {
 		f.allocateBlock(blockSizeInMb)
 		f.total = f.total + blockSizeInMb
 		f.tracker.trackOne("alloctd", f.total)
