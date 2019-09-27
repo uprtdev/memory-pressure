@@ -68,11 +68,29 @@ The default block size is 128 megabytes, it can also be specified as a first com
 
 In case if 'block size' value is set to 0, 'memory-pressure' binary will not initialize and start the allocator module at all and will work simply in passive mode.
 
-Allocator reports total allocated memory blocks size to ```'alloctd'``` metic.
+Also it is possible to pre-allocate some block with a specified size before the test, and set the maximum limit of allocated memory, and the test will stop after reaching it.
+
+```Command line arguments:
+  -allocInterval int
+    	time delay between allocations (in seconds) (default 1)
+  -blockSize int
+    	block size for every allocation (in Mb), 0 to disable periodical allocator (default 128)
+  -initialSize int
+    	size to allocate before test start (in Mb), 0 to disable initial allocation
+  -limit int
+    	maximum allocated memory size (in Mb), 0 to disable the limit
+```
+
+Allocator reports total allocated memory blocks size to ```'alloctd'``` metric.
 
 
 ### Tracker
-It collects all the metrics from the sub-components and prints to the stdout every N (N=5, right) seconds or in case of events. It shows adds the time from the process start (in seconds) in the ```'time'``` metric.
+It collects all the metrics from the sub-components and prints to the stdout every N (default N=5, right) seconds or in case of events. It shows adds the time from the process start (in seconds) in the ```'time'``` metric.
+
+```Command line argument:
+  -printInterval int
+    	time delay between current status updates (in seconds) (default 5)
+```
 
 It looks like this:
 <pre>2019/09/18 19:58:01 System page size is 4096 bytes
