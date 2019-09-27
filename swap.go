@@ -36,7 +36,7 @@ func (o *SwapObserver) Initialize(t *Tracker, r Reader) {
 	o.hertz = uint(C.sysconf(C._SC_CLK_TCK))
 	log.Printf("System timer frequency is %d Hz", o.hertz)
 	o.oldValues.lastUserTime = 0
-	o.lowPassHalfLifeSeconds = 10.0
+	o.lowPassHalfLifeSeconds = 30.0
 	o.process()
 }
 
