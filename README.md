@@ -70,7 +70,8 @@ In case if 'block size' value is set to 0, 'memory-pressure' binary will not ini
 
 Also it is possible to pre-allocate some block with a specified size before the test, and set the maximum limit of allocated memory, and the test will stop after reaching it.
 
-```Command line arguments:
+```
+Command line arguments:
   -allocInterval int
     	time delay between allocations (in seconds) (default 1)
   -blockSize int
@@ -87,7 +88,8 @@ Allocator reports total allocated memory blocks size to ```'alloctd'``` metric.
 ### Tracker
 It collects all the metrics from the sub-components and prints to the stdout every N (default N=5, right) seconds or in case of events. It shows adds the time from the process start (in seconds) in the ```'time'``` metric.
 
-```Command line argument:
+```
+Command line argument:
   -printInterval int
     	time delay between current status updates (in seconds) (default 5)
 ```
