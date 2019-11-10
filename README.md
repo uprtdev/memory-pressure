@@ -21,12 +21,8 @@ This reads and parses ```/proc/meminfo``` file and generates the following metri
 ```swp_total``` - total swap spaces  (in megabytes)
 
 
-### Page faults counter and low watermark pages observer
+### Page faults counter
 One task of this observer is to monitor ```'pgmajfault'``` (page faults counter) parameter. In case if current faults per second value is significantly higher than the average, we can assume that swap trashing is happening. Because sample times are inconsistent and we're measuring CPU time instead of real time, EWMA low-pass filter is applied for the values. 
-
-Another task is to count 'swap tendency' metric, as it is described here https://access.redhat.com/solutions/103833
-
-The actual problem is that 'swappines' is a standard system param, 'mapped ratio' can be counted from 'nr_mapped' system metric, but the 'distress' value is inaccessible from the kernel internal for user-space software, so this method, unfortunately, is unusable in production.
 
 Metrics:
 ```swp_flts_sec``` - page faults per second
@@ -35,6 +31,13 @@ Metrics:
 
 ```swp_flts_mult```- current page faults per second and average page faults per second ratio. This can be used for swap trashing evaluation.
 
+### 'Swap tendency' calculator
+
+Another task is to count 'swap tendency' metric, as it is described here https://access.redhat.com/solutions/103833
+
+The actual problem is that 'swappines' is a standard system param, 'mapped ratio' can be counted from 'nr_mapped' system metric, but the 'distress' value is inaccessible from the kernel internals for user-space software, so this method, unfortunately, is unusable in production.
+
+Metrics:
 ```swp_tend``` - 'swap tendency' metric counted as described above.
 
 
@@ -64,7 +67,7 @@ In both cases, ```avg10``` (10 seconds averaged) values are used.
 ### Allocator
 Allocator is used for allocating (^_^) new memory block every second. Because 'overcommit memory' feature is enabled by default on modern Linux systems, allocator also fills one byte in every memory page with a random value to force the system memory allocator to allocate the memory page (TODO: rewrite this paragraph in a human-readable style :) )
 
-The default block size is 128 megabytes, it can also be specified as a first command-line argument.
+The default block size is 128 megabytes, it can also be specified as a command-line argument.
 
 In case if 'block size' value is set to 0, 'memory-pressure' binary will not initialize and start the allocator module at all and will work simply in passive mode.
 
