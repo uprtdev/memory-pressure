@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -18,13 +19,25 @@ func PageSize() int {
 	return int(C.sysconf(C._SC_PAGE_SIZE))
 }
 
+func ParseCustomParams(args string) map[string]string {
+	result := make(map[string]string)
+	pairs := strings.Split(args, ",")
+	for _, option := range pairs {
+		pair := strings.Split(option, "=")
+		if len(pair) == 2 {
+			result[pair[0]] = pair[1]
+		}
+	}
+	return result
+}
+
 type PassiveObserver interface {
-	Initialize(t *Tracker, r Reader)
+	Initialize(t *Tracker, r Reader, p map[string]string)
 	TimerEvent()
 }
 
 type ActiveObserver interface {
-	Initialize(t *Tracker, r Reader, c chan bool)
+	Initialize(t *Tracker, r Reader, c chan bool, p map[string]string)
 }
 
 func main() {
@@ -33,7 +46,9 @@ func main() {
 	var allocatePeriodInS = flag.Int("allocInterval", 1, "time delay between allocations (in seconds)")
 	var printPeriodInS = flag.Int("printInterval", 5, "time delay between current status updates (in seconds)")
 	var maximumLimitInMb = flag.Int("limit", 0, "maximum allocated memory size (in Mb), 0 to disable the limit")
+	var customParams = flag.String("options", "", "custom options for observers, see README for information")
 	flag.Parse()
+	observersOptions := ParseCustomParams(*customParams)
 
 	r := FileReader{}
 	t := Tracker{}
@@ -44,14 +59,14 @@ func main() {
 	passiveObservers = append(passiveObservers, &SwapObserver{})
 	passiveObservers = append(passiveObservers, &PsiObserver{})
 	for _, element := range passiveObservers {
-		element.Initialize(&t, r)
+		element.Initialize(&t, r, observersOptions)
 	}
 
 	notifySink := make(chan bool)
 	var activeObservers []ActiveObserver
 	activeObservers = append(activeObservers, &CgroupsObserver{})
 	for _, element := range activeObservers {
-		element.Initialize(&t, r, notifySink)
+		element.Initialize(&t, r, notifySink, observersOptions)
 	}
 
 	if *blockSizeInMb == 0 {

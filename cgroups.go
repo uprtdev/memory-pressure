@@ -55,7 +55,7 @@ func (o *CgroupsObserver) enableNotification(eventfd int, level string) error {
 	return err
 }
 
-func (o *CgroupsObserver) Initialize(t *Tracker, r Reader, c chan bool) {
+func (o *CgroupsObserver) Initialize(t *Tracker, r Reader, c chan bool, p map[string]string) {
 	o.tracker = t
 	o.notifyChan = c
 	o.oldPressure = 0xFF

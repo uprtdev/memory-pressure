@@ -14,7 +14,7 @@ type MeminfoObserver struct {
 	pageSize int
 }
 
-func (o *MeminfoObserver) Initialize(t *Tracker, r Reader) {
+func (o *MeminfoObserver) Initialize(t *Tracker, r Reader, p map[string]string) {
 	o.tracker = t
 	o.reader = r
 	o.pageSize = PageSize()

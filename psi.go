@@ -19,7 +19,7 @@ type PsiValues struct {
 	fullAvg10 float64
 }
 
-func (o *PsiObserver) Initialize(t *Tracker, r Reader) {
+func (o *PsiObserver) Initialize(t *Tracker, r Reader, p map[string]string) {
 	o.tracker = t
 	o.reader = r
 	o.process()

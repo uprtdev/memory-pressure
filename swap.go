@@ -30,7 +30,7 @@ type swapFaultsValues struct {
 	multiplier             float64
 }
 
-func (o *SwapObserver) Initialize(t *Tracker, r Reader) {
+func (o *SwapObserver) Initialize(t *Tracker, r Reader, p map[string]string) {
 	o.tracker = t
 	o.reader = r
 	o.hertz = uint(C.sysconf(C._SC_CLK_TCK))
