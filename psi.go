@@ -12,16 +12,18 @@ const psiMemoryFile = "/proc/pressure/memory"
 type PsiObserver struct {
 	tracker *Tracker
 	reader  Reader
+	params  map[string]string
 }
 
 type PsiValues struct {
-	someAvg10 float64
-	fullAvg10 float64
+	someAvg float64
+	fullAvg float64
 }
 
 func (o *PsiObserver) Initialize(t *Tracker, r Reader, p map[string]string) {
 	o.tracker = t
 	o.reader = r
+	o.params = p
 	o.process()
 }
 
@@ -46,17 +48,22 @@ func (o *PsiObserver) parsePsiValue(text string, key string) float64 {
 func (o *PsiObserver) getPsiValues() (*PsiValues, error) {
 	var values PsiValues
 
+	avgMetric := "avg10"
+	if len(o.params["psiAvgMetric"]) > 1 {
+		avgMetric = o.params["psiAvgMetric"]
+	}
+
 	psiSome, err := o.reader.getTextValue(psiMemoryFile, "some")
 	if err != nil {
 		return nil, err
 	}
-	values.someAvg10 = o.parsePsiValue(psiSome, "avg10")
+	values.someAvg = o.parsePsiValue(psiSome, avgMetric)
 
 	psiFull, err := o.reader.getTextValue(psiMemoryFile, "full")
 	if err != nil {
 		return nil, err
 	}
-	values.fullAvg10 = o.parsePsiValue(psiFull, "avg10")
+	values.fullAvg = o.parsePsiValue(psiFull, avgMetric)
 
 	return &values, nil
 }
@@ -69,8 +76,8 @@ func (o *PsiObserver) process() {
 
 	values, err := o.getPsiValues()
 	if err == nil {
-		result[someAvgKey] = values.someAvg10
-		result[fullAvgKey] = values.fullAvg10
+		result[someAvgKey] = values.someAvg
+		result[fullAvgKey] = values.fullAvg
 	}
 	o.tracker.track(&result)
 }

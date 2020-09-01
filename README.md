@@ -78,7 +78,7 @@ The metics are:
 
 ```psi_full``` - the percentage of time that nobody is able to use the CPU for actual work due to memory pressure
 
-In both cases, ```avg10``` (10 seconds averaged) values are used.
+By default, ```avg10``` (10 seconds averaged) values are used. You can override it using custom option, e.g.  ```-options "psiAvgMetric=avg60"```
 
 ### Allocator
 Allocator is used for allocating (^_^) new memory block every second. Because 'overcommit memory' feature is enabled by default on modern Linux systems, allocator also fills one byte in every memory page with a random value to force the system memory allocator to allocate the memory page (TODO: rewrite this paragraph in a human-readable style :) )
