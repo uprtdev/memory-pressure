@@ -39,7 +39,15 @@ func (o *SwapObserver) Initialize(t *Tracker, r Reader, p map[string]string) {
 	o.hertz = uint(C.sysconf(C._SC_CLK_TCK))
 	log.Printf("System timer frequency is %d Hz", o.hertz)
 	o.oldValues.lastUserTime = 0
-	o.lowPassHalfLifeSeconds = 30.0
+	lowPassOptionStr := o.params["lowPassHalfLifeSeconds"]
+	if len(lowPassOptionStr) > 0 {
+		if f, err := strconv.ParseFloat(lowPassOptionStr, 32); err == nil {
+			o.lowPassHalfLifeSeconds = f
+			log.Printf("Using lowPassHalfLife = %f seconds", f)
+		}
+	} else {
+		o.lowPassHalfLifeSeconds = 30.0
+	}
 
 	o.process()
 }
