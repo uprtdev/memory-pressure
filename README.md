@@ -80,6 +80,21 @@ The metics are:
 
 By default, ```avg10``` (10 seconds averaged) values are used. You can override it using custom option, e.g.  ```-psiAvgMetric="avg60"```
 
+### PSI (pressure stall information) _triggers_ observer
+This set up PSI 2 event file descriptors and subscribes for the triggers. A trigger describes the maximum cumulative stall time over a specific time window, e.g. 100ms of total stall time within any 500ms window to generate a wakeup event. Triggers are fired when resource pressure exceeds certain thresholds. Please refer to Linux kernel documentation for details:
+https://www.kernel.org/doc/html/latest/accounting/psi.html#monitoring-for-pressure-thresholds
+
+
+Metric from this observer:
+```psi_trig``` - bit mask ('critical - 'medium'). E.g., in case of 'medium' trigger, the value will be 1, in case of both triggers active, the value will be equal to 3.
+
+This observer may require superuser rights to initialize and run.
+
+Default triggers thresholds settings are ```some 150000 1000000``` and ```full 100000 1000000```, but you can override it using options: ```-psiMediumTrigger="some 200000 1000000" -psiCriticalTrigger="some 300000 1000000"```
+
+And one more option is trigger timeout (in seconds) and it is related to time windows value from thresholds settings. If the triggers doesn't fire once again during the timeout, the bitmask for this trigger is set back to 0. Default value is 5 seconds, you can override it: ```-psiTrigTimeout=2```
+
+
 ### Allocator
 Allocator is used for allocating (^_^) new memory block every second. Because 'overcommit memory' feature is enabled by default on modern Linux systems, allocator also fills one byte in every memory page with a random value to force the system memory allocator to allocate the memory page (TODO: rewrite this paragraph in a human-readable style :) )
 

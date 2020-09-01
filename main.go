@@ -52,6 +52,7 @@ func main() {
 	notifySink := make(chan bool)
 	var activeObservers []ActiveObserver
 	activeObservers = append(activeObservers, &CgroupsObserver{})
+	activeObservers = append(activeObservers, &PsiTrigObserver{})
 	for _, element := range activeObservers {
 		element.SetFlags()
 	}
