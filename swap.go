@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strconv"
 )
 
 const vmstatPath = "/proc/vmstat"
@@ -17,6 +18,7 @@ const swapinessPath = "/proc/sys/vm/swappiness"
 type SwapObserver struct {
 	tracker                *Tracker
 	reader                 Reader
+	params                 map[string]string
 	hertz                  uint
 	oldValues              swapFaultsValues
 	lowPassHalfLifeSeconds float64
@@ -33,10 +35,12 @@ type swapFaultsValues struct {
 func (o *SwapObserver) Initialize(t *Tracker, r Reader, p map[string]string) {
 	o.tracker = t
 	o.reader = r
+	o.params = p
 	o.hertz = uint(C.sysconf(C._SC_CLK_TCK))
 	log.Printf("System timer frequency is %d Hz", o.hertz)
 	o.oldValues.lastUserTime = 0
 	o.lowPassHalfLifeSeconds = 30.0
+
 	o.process()
 }
 
@@ -92,6 +96,12 @@ func (o *SwapObserver) calculateSwapFaults(newMajorPageFaults int64, newUserExec
 	deltaUserExecTime := newUserExecTime - o.oldValues.lastUserTime
 	deltaMajorPageFaults :=
 		float64(newMajorPageFaults - o.oldValues.lastMajorPageFaults)
+
+	if o.oldValues.lastUserTime == 0 && o.params["averageOnlyCurrent"] == "true" {
+		// If we have an option to calculate current average relying only on new measures
+		// and this is our first run, let's skip this calculation
+		deltaUserExecTime = 0
+	}
 
 	if deltaUserExecTime > 0 {
 		values.sampledFaultsPerSecond =

@@ -18,7 +18,7 @@ type sampleData struct {
 func TestCalculateSwapFaultsSimple(t *testing.T) {
 	var ewma = 100.0
 	const halfLife = 100
-	o := SwapObserver{nil, nil, 1000, swapFaultsValues{0, ewma, 0, 0, 0}, halfLife}
+	o := SwapObserver{nil, nil, nil, 1000, swapFaultsValues{0, ewma, 0, 0, 0}, halfLife}
 	step1results := o.calculateSwapFaults(1, halfLife)
 	if !floatsEqual(step1results.currentFaultsPerSecond, ewma/2) {
 		t.Fatalf("Wrong step1 EWMA page faults calculations: expected %f, got %f", ewma/2, step1results.currentFaultsPerSecond)
@@ -28,7 +28,7 @@ func TestCalculateSwapFaultsSimple(t *testing.T) {
 func TestCalculateSwapFaultsNullDelta(t *testing.T) {
 	var ewma = 100.0
 	const halfLife = 100
-	o := SwapObserver{nil, nil, 1000, swapFaultsValues{0, ewma, 0, 0, 0}, halfLife}
+	o := SwapObserver{nil, nil, nil, 1000, swapFaultsValues{0, ewma, 0, 0, 0}, halfLife}
 	step1results := o.calculateSwapFaults(1, halfLife)
 	o.oldValues = step1results
 	step2results := o.calculateSwapFaults(2, halfLife)
@@ -40,7 +40,7 @@ func TestCalculateSwapFaultsNullDelta(t *testing.T) {
 func TestCalculateSwapFaultStepped(t *testing.T) {
 	var ewma = 100.0
 	const halfLife = 100
-	o := SwapObserver{nil, nil, 1000, swapFaultsValues{0, ewma, 0, 0, 0}, halfLife}
+	o := SwapObserver{nil, nil, nil, 1000, swapFaultsValues{0, ewma, 0, 0, 0}, halfLife}
 	const increments = 10
 	var step2results swapFaultsValues
 	for i := 1; i <= increments; i++ {
@@ -56,7 +56,7 @@ func TestCalculateSwapFaultPrecalc(t *testing.T) {
 	var cpuTime float64 = 1.0
 	var pageFaults int64 = 1
 	const halfLifeStep3 = 1
-	o := SwapObserver{nil, nil, 1000, swapFaultsValues{float64(pageFaults), 0.0, pageFaults, cpuTime, 0}, halfLifeStep3}
+	o := SwapObserver{nil, nil, nil, 1000, swapFaultsValues{float64(pageFaults), 0.0, pageFaults, cpuTime, 0}, halfLifeStep3}
 	samples := []sampleData{
 		sampleData{1, 10, 5.0},
 		sampleData{1, 10, 7.5},
