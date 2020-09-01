@@ -20,6 +20,14 @@ This reads and parses ```/proc/meminfo``` file and generates the following metri
 
 ```swp_total``` - total swap spaces  (in megabytes)
 
+Optional metrics:
+
+```mem_reclaim``` - Part of Slab, that might be reclaimed, such as caches (in megabytes)
+
+```mem_inactive``` - The total amount of buffer or page cache memory, that are free and and available (in megabytes)
+
+To enable optional metrics, you can add a custom option to the command line like ```-options "showInactive=true,showReclaimable=true"```
+
 
 ### Page faults counter
 One task of this observer is to monitor ```'pgmajfault'``` (page faults counter) parameter. In case if current faults per second value is significantly higher than the average, we can assume that swap trashing is happening. Because sample times are inconsistent and we're measuring CPU time instead of real time, EWMA low-pass filter is applied for the values. 
@@ -30,6 +38,14 @@ Metrics:
 ```swp_flts_sec_f``` - page faults per second with EWMA low-pass filter
 
 ```swp_flts_mult```- current page faults per second and average page faults per second ratio. This can be used for swap trashing evaluation.
+
+Custom options:
+
+```lowPassHalfLifeSeconds``` - low-pass filter half-life time (in seconds) default is 30.
+
+```averageOnlyCurrent``` - don't calculate average paages fauls using statics collected by the OS before the program was started, use only new values (default: false).
+
+Example: ```-options "lowPassHalfLifeSeconds=15,averageOnlyCurrent=true"```
 
 ### 'Swap tendency' calculator
 
@@ -114,3 +130,7 @@ alloctd, cgroups, mem_avail, mem_avail_est, mem_pcnt, mem_total, psi_full, psi_s
 ```git clone```, ```go build``` and run!
 
 And, of course, ```go test``` if you need this.
+
+Command-line arguments consist of general ones (like ```-printInterval``` or ```-blockSize```) specified directly in the command line and observer-specific parameters, that can be listed comma-separated in ```-option```argument, like
+
+```./memory_pressure -printInterval 1 -allocInterval 5 -blockSize 128 -options "showInactive=true,showReclaimable=true,lowPassHalfLifeSeconds=15"```
