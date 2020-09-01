@@ -12,11 +12,13 @@ type MeminfoObserver struct {
 	tracker  *Tracker
 	reader   Reader
 	pageSize int
+	params   map[string]string
 }
 
 func (o *MeminfoObserver) Initialize(t *Tracker, r Reader, p map[string]string) {
 	o.tracker = t
 	o.reader = r
+	o.params = p
 	o.pageSize = PageSize()
 	log.Printf("System page size is %d bytes", o.pageSize)
 	o.process()
@@ -69,6 +71,8 @@ func (o *MeminfoObserver) analyze() (map[string]interface{}, error) {
 	const swapPercentKey string = "swp_pcnt"
 	const swapFreeKey string = "swp_free"
 	const swapTotalKey string = "swp_total"
+	const reclaimableKey string = "mem_reclaim"
+	const inactiveFileKey string = "mem_inactive"
 
 	const bytesInKb = 1024
 
@@ -92,6 +96,20 @@ func (o *MeminfoObserver) analyze() (map[string]interface{}, error) {
 		// No 'MemAvailable' key in 'meminfo', looks like we're running an old kernel
 		memAvailableKb = memAvailableEstimatedKb
 		result[availableKey] = memAvailableEstimatedKb / bytesInKb
+	}
+
+	if o.params["showReclaimable"] == "true" {
+		memReclaimableKb, ok := memInfoData["SReclaimable"]
+		if ok {
+			result[reclaimableKey] = memReclaimableKb / bytesInKb
+		}
+	}
+
+	if o.params["showInactive"] == "true" {
+		memInaciveFileKb, ok := memInfoData["Inactive(file)"]
+		if ok {
+			result[inactiveFileKey] = memInaciveFileKb / bytesInKb
+		}
 	}
 
 	memTotalKb, ok := memInfoData["MemTotal"]

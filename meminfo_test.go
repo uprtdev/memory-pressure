@@ -5,7 +5,7 @@ import "testing"
 
 func TestEstimateAvailableMemory(t *testing.T) {
 	r := FileReaderStub{}
-	o := MeminfoObserver{nil, r, 4096}
+	o := MeminfoObserver{nil, r, 4096, nil}
 	memInfoData, err := o.reader.getFloatKeyValuePairs(meminfoFile)
 	if err != nil {
 		t.Fatal(err)
