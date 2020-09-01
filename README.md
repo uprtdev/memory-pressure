@@ -41,9 +41,9 @@ Metrics:
 
 Custom options:
 
-```lowPassHalfLifeSeconds``` - low-pass filter half-life time (in seconds) default is 30.
+```lowPassHalfLifeSeconds``` - low-pass filter half-life time (in seconds), default is 30.
 
-```averageOnlyCurrent``` - don't calculate average paages fauls using statics collected by the OS before the program was started, use only new values (default: false).
+```averageOnlyCurrent``` - don't calculate average pages faults using statics collected by the OS before the program was started, use only new values (default: false).
 
 Example: ```-options "lowPassHalfLifeSeconds=15,averageOnlyCurrent=true"```
 
