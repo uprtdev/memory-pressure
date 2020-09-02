@@ -45,7 +45,7 @@ Custom options:
 
 ```averageOnlyCurrent``` - don't calculate average pages faults using statics collected by the OS before the program was started, use only new values (default: false).
 
-Example: ```-lowPassHalfLifeSeconds=15 averageOnlyCurrent```
+Example: ```-lowPassHalfLifeSeconds=15 -averageOnlyCurrent```
 
 ### 'Swap tendency' calculator
 
