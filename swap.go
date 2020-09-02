@@ -5,10 +5,10 @@ package main
 */
 import "C"
 import (
+	"flag"
 	"fmt"
 	"log"
 	"math"
-	"strconv"
 )
 
 const vmstatPath = "/proc/vmstat"
@@ -18,10 +18,10 @@ const swapinessPath = "/proc/sys/vm/swappiness"
 type SwapObserver struct {
 	tracker                *Tracker
 	reader                 Reader
-	params                 map[string]string
 	hertz                  uint
 	oldValues              swapFaultsValues
 	lowPassHalfLifeSeconds float64
+	averageOnlyCurrent     bool
 }
 
 type swapFaultsValues struct {
@@ -32,22 +32,17 @@ type swapFaultsValues struct {
 	multiplier             float64
 }
 
-func (o *SwapObserver) Initialize(t *Tracker, r Reader, p map[string]string) {
+func (o *SwapObserver) SetFlags() {
+	flag.Float64Var(&o.lowPassHalfLifeSeconds, "lowPassHalfLifeSeconds", 30.0, "low-pass filter half-life time (in seconds)")
+	flag.BoolVar(&o.averageOnlyCurrent, "averageOnlyCurrent", false, "don't calculate average pages faults using statics collected by the OS before the program was started, use only new values")
+}
+
+func (o *SwapObserver) Initialize(t *Tracker, r Reader) {
 	o.tracker = t
 	o.reader = r
-	o.params = p
 	o.hertz = uint(C.sysconf(C._SC_CLK_TCK))
 	log.Printf("System timer frequency is %d Hz", o.hertz)
 	o.oldValues.lastUserTime = 0
-	lowPassOptionStr := o.params["lowPassHalfLifeSeconds"]
-	if len(lowPassOptionStr) > 0 {
-		if f, err := strconv.ParseFloat(lowPassOptionStr, 32); err == nil {
-			o.lowPassHalfLifeSeconds = f
-			log.Printf("Using lowPassHalfLife = %f seconds", f)
-		}
-	} else {
-		o.lowPassHalfLifeSeconds = 30.0
-	}
 
 	o.process()
 }
@@ -105,7 +100,7 @@ func (o *SwapObserver) calculateSwapFaults(newMajorPageFaults int64, newUserExec
 	deltaMajorPageFaults :=
 		float64(newMajorPageFaults - o.oldValues.lastMajorPageFaults)
 
-	if o.oldValues.lastUserTime == 0 && o.params["averageOnlyCurrent"] == "true" {
+	if o.oldValues.lastUserTime == 0 && o.averageOnlyCurrent == true {
 		// If we have an option to calculate current average relying only on new measures
 		// and this is our first run, let's skip this calculation
 		deltaUserExecTime = 0

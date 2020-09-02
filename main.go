@@ -10,7 +10,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -19,25 +18,15 @@ func PageSize() int {
 	return int(C.sysconf(C._SC_PAGE_SIZE))
 }
 
-func ParseCustomParams(args string) map[string]string {
-	result := make(map[string]string)
-	pairs := strings.Split(args, ",")
-	for _, option := range pairs {
-		pair := strings.Split(option, "=")
-		if len(pair) == 2 {
-			result[pair[0]] = pair[1]
-		}
-	}
-	return result
-}
-
 type PassiveObserver interface {
-	Initialize(t *Tracker, r Reader, p map[string]string)
+	SetFlags()
+	Initialize(t *Tracker, r Reader)
 	TimerEvent()
 }
 
 type ActiveObserver interface {
-	Initialize(t *Tracker, r Reader, c chan bool, p map[string]string)
+	SetFlags()
+	Initialize(t *Tracker, r Reader, c chan bool)
 }
 
 func main() {
@@ -46,9 +35,7 @@ func main() {
 	var allocatePeriodInS = flag.Int("allocInterval", 1, "time delay between allocations (in seconds)")
 	var printPeriodInS = flag.Int("printInterval", 5, "time delay between current status updates (in seconds)")
 	var maximumLimitInMb = flag.Int("limit", 0, "maximum allocated memory size (in Mb), 0 to disable the limit")
-	var customParams = flag.String("options", "", "custom options for observers, see README for information")
-	flag.Parse()
-	observersOptions := ParseCustomParams(*customParams)
+	// observer-specific flags are handled by observers in their own SetFlags() funcs
 
 	r := FileReader{}
 	t := Tracker{}
@@ -59,14 +46,22 @@ func main() {
 	passiveObservers = append(passiveObservers, &SwapObserver{})
 	passiveObservers = append(passiveObservers, &PsiObserver{})
 	for _, element := range passiveObservers {
-		element.Initialize(&t, r, observersOptions)
+		element.SetFlags()
 	}
 
 	notifySink := make(chan bool)
 	var activeObservers []ActiveObserver
 	activeObservers = append(activeObservers, &CgroupsObserver{})
 	for _, element := range activeObservers {
-		element.Initialize(&t, r, notifySink, observersOptions)
+		element.SetFlags()
+	}
+
+	flag.Parse()
+	for _, element := range passiveObservers {
+		element.Initialize(&t, r)
+	}
+	for _, element := range activeObservers {
+		element.Initialize(&t, r, notifySink)
 	}
 
 	if *blockSizeInMb == 0 {

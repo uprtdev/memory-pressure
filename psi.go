@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"math"
 	"strconv"
@@ -10,9 +11,9 @@ import (
 const psiMemoryFile = "/proc/pressure/memory"
 
 type PsiObserver struct {
-	tracker *Tracker
-	reader  Reader
-	params  map[string]string
+	tracker   *Tracker
+	reader    Reader
+	avgMetric string
 }
 
 type PsiValues struct {
@@ -20,11 +21,14 @@ type PsiValues struct {
 	fullAvg float64
 }
 
-func (o *PsiObserver) Initialize(t *Tracker, r Reader, p map[string]string) {
+func (o *PsiObserver) Initialize(t *Tracker, r Reader) {
 	o.tracker = t
 	o.reader = r
-	o.params = p
 	o.process()
+}
+
+func (o *PsiObserver) SetFlags() {
+	flag.StringVar(&o.avgMetric, "psiAvgMetric", "avg10", "metric to use in PSI observer")
 }
 
 func (o *PsiObserver) TimerEvent() {
@@ -48,22 +52,17 @@ func (o *PsiObserver) parsePsiValue(text string, key string) float64 {
 func (o *PsiObserver) getPsiValues() (*PsiValues, error) {
 	var values PsiValues
 
-	avgMetric := "avg10"
-	if len(o.params["psiAvgMetric"]) > 1 {
-		avgMetric = o.params["psiAvgMetric"]
-	}
-
 	psiSome, err := o.reader.getTextValue(psiMemoryFile, "some")
 	if err != nil {
 		return nil, err
 	}
-	values.someAvg = o.parsePsiValue(psiSome, avgMetric)
+	values.someAvg = o.parsePsiValue(psiSome, o.avgMetric)
 
 	psiFull, err := o.reader.getTextValue(psiMemoryFile, "full")
 	if err != nil {
 		return nil, err
 	}
-	values.fullAvg = o.parsePsiValue(psiFull, avgMetric)
+	values.fullAvg = o.parsePsiValue(psiFull, o.avgMetric)
 
 	return &values, nil
 }

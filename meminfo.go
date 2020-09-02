@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"math"
 )
@@ -9,16 +10,21 @@ const zoneFile = "/proc/zoneinfo"
 const meminfoFile = "/proc/meminfo"
 
 type MeminfoObserver struct {
-	tracker  *Tracker
-	reader   Reader
-	pageSize int
-	params   map[string]string
+	tracker         *Tracker
+	reader          Reader
+	pageSize        int
+	showReclaimable bool
+	showInactive    bool
 }
 
-func (o *MeminfoObserver) Initialize(t *Tracker, r Reader, p map[string]string) {
+func (o *MeminfoObserver) SetFlags() {
+	flag.BoolVar(&o.showReclaimable, "showReclaimable", false, "add 'SReclaimable' metric to the output")
+	flag.BoolVar(&o.showInactive, "showInactive", false, "add 'Inactive(file)' metric to the output")
+}
+
+func (o *MeminfoObserver) Initialize(t *Tracker, r Reader) {
 	o.tracker = t
 	o.reader = r
-	o.params = p
 	o.pageSize = PageSize()
 	log.Printf("System page size is %d bytes", o.pageSize)
 	o.process()
@@ -98,14 +104,14 @@ func (o *MeminfoObserver) analyze() (map[string]interface{}, error) {
 		result[availableKey] = memAvailableEstimatedKb / bytesInKb
 	}
 
-	if o.params["showReclaimable"] == "true" {
+	if o.showReclaimable == true {
 		memReclaimableKb, ok := memInfoData["SReclaimable"]
 		if ok {
 			result[reclaimableKey] = memReclaimableKb / bytesInKb
 		}
 	}
 
-	if o.params["showInactive"] == "true" {
+	if o.showInactive == true {
 		memInaciveFileKb, ok := memInfoData["Inactive(file)"]
 		if ok {
 			result[inactiveFileKey] = memInaciveFileKb / bytesInKb

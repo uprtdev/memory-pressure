@@ -26,7 +26,7 @@ Optional metrics:
 
 ```mem_inactive``` - The total amount of buffer or page cache memory, that are free and and available (in megabytes)
 
-To enable optional metrics, you can add a custom option to the command line like ```-options "showInactive=true,showReclaimable=true"```
+To enable optional metrics, you can add a custom option to the command line like ```-showInactive -showReclaimable```
 
 
 ### Page faults counter
@@ -45,7 +45,7 @@ Custom options:
 
 ```averageOnlyCurrent``` - don't calculate average pages faults using statics collected by the OS before the program was started, use only new values (default: false).
 
-Example: ```-options "lowPassHalfLifeSeconds=15,averageOnlyCurrent=true"```
+Example: ```-lowPassHalfLifeSeconds=15 averageOnlyCurrent```
 
 ### 'Swap tendency' calculator
 
@@ -78,7 +78,7 @@ The metics are:
 
 ```psi_full``` - the percentage of time that nobody is able to use the CPU for actual work due to memory pressure
 
-By default, ```avg10``` (10 seconds averaged) values are used. You can override it using custom option, e.g.  ```-options "psiAvgMetric=avg60"```
+By default, ```avg10``` (10 seconds averaged) values are used. You can override it using custom option, e.g.  ```-psiAvgMetric="avg60"```
 
 ### Allocator
 Allocator is used for allocating (^_^) new memory block every second. Because 'overcommit memory' feature is enabled by default on modern Linux systems, allocator also fills one byte in every memory page with a random value to force the system memory allocator to allocate the memory page (TODO: rewrite this paragraph in a human-readable style :) )
@@ -130,7 +130,3 @@ alloctd, cgroups, mem_avail, mem_avail_est, mem_pcnt, mem_total, psi_full, psi_s
 ```git clone```, ```go build``` and run!
 
 And, of course, ```go test``` if you need this.
-
-Command-line arguments consist of general ones (like ```-printInterval``` or ```-blockSize```) specified directly in the command line and observer-specific parameters, that can be listed comma-separated in ```-option```argument, like
-
-```./memory_pressure -printInterval 1 -allocInterval 5 -blockSize 128 -options "showInactive=true,showReclaimable=true,lowPassHalfLifeSeconds=15"```
