@@ -51,7 +51,7 @@ Example: ```-lowPassHalfLifeSeconds=15 -averageOnlyCurrent```
 
 Another task is to count 'swap tendency' metric, as it is described here https://access.redhat.com/solutions/103833
 
-The actual problem is that 'swappines' is a standard system param, 'mapped ratio' can be counted from 'nr_mapped' system metric, but the 'distress' value is inaccessible from the kernel internals for user-space software, so this method, unfortunately, is unusable in production.
+The actual problem is that 'swappines' is a standard system param, 'mapped ratio' can be counted from 'nr_mapped' system metric, but the 'distress' value is inaccessible from the kernel internals for user-space software. So this method, unfortunately, is unusable in production, and that's why it is disabled by default. You can enable it with ```-showTendency``` option.
 
 Metrics:
 ```swp_tend``` - 'swap tendency' metric counted as described above.
@@ -92,8 +92,7 @@ This observer may require superuser rights to initialize and run.
 
 Default triggers thresholds settings are ```some 150000 1000000``` and ```full 100000 1000000```, but you can override it using options: ```-psiMediumTrigger="some 200000 1000000" -psiCriticalTrigger="some 300000 1000000"```
 
-And one more option is a trigger timeout (in seconds) and it is related to time windows value from thresholds settings. If the trigger doesn't fire again during the timeout, the bitmask for this trigger is set back to 0. Default value is 5 seconds, you can override it: ```-psiTrigTimeout=2```
-
+And one more option is a trigger timeout (in seconds) related to the time windows value from thresholds settings. If the trigger doesn't fire again during the timeout, the bitmask for this trigger is set back to 0. The default value is 5 seconds, you can override it: -psiTrigTimeout=2
 
 ### Allocator
 Allocator is used for allocating (^_^) new memory block every second. Because 'overcommit memory' feature is enabled by default on modern Linux systems, allocator also fills one byte in every memory page with a random value to force the system memory allocator to allocate the memory page (TODO: rewrite this paragraph in a human-readable style :) )
@@ -145,3 +144,7 @@ alloctd, cgroups, mem_avail, mem_avail_est, mem_pcnt, mem_total, psi_full, psi_s
 ```git clone```, ```go build``` and run!
 
 And, of course, ```go test``` if you need this.
+
+
+## License
+WTFPL http://www.wtfpl.net/

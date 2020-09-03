@@ -22,6 +22,7 @@ type SwapObserver struct {
 	oldValues              swapFaultsValues
 	lowPassHalfLifeSeconds float64
 	averageOnlyCurrent     bool
+	showTendency           bool
 }
 
 type swapFaultsValues struct {
@@ -35,6 +36,7 @@ type swapFaultsValues struct {
 func (o *SwapObserver) SetFlags() {
 	flag.Float64Var(&o.lowPassHalfLifeSeconds, "lowPassHalfLifeSeconds", 30.0, "low-pass filter half-life time (in seconds)")
 	flag.BoolVar(&o.averageOnlyCurrent, "averageOnlyCurrent", false, "don't calculate average pages faults using statics collected by the OS before the program was started, use only new values")
+	flag.BoolVar(&o.showTendency, "showTendency", false, "show 'swap_tendency' (swp_tend) metric in the output")
 }
 
 func (o *SwapObserver) Initialize(t *Tracker, r Reader) {
@@ -152,15 +154,17 @@ func (o *SwapObserver) analyze() (map[string]interface{}, error) {
 	result[faultsSecFilterKey] = newValues.currentFaultsPerSecond
 	result[faultsMultiplierKey] = newValues.multiplier
 
-	nrMappedValue, memTotalValue, swappiness, err := o.getValuesForTendency()
-	if err == nil {
-		tendency, err := o.calculateTendency(nrMappedValue, memTotalValue, swappiness)
+	if o.showTendency {
+		nrMappedValue, memTotalValue, swappiness, err := o.getValuesForTendency()
 		if err == nil {
-			result[tendencyKey] = tendency
+			tendency, err := o.calculateTendency(nrMappedValue, memTotalValue, swappiness)
+			if err == nil {
+				result[tendencyKey] = tendency
+			}
 		}
-	}
-	if err != nil {
-		log.Print(err)
+		if err != nil {
+			log.Print(err)
+		}
 	}
 	return result, nil
 }
