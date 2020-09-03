@@ -58,7 +58,7 @@ Metrics:
 
 
 ### cgroups eventfd observer
-This set up cgroups 'memory_pressure' event file descriptor and subscribes for these events. CGroups subsystem allows us to set physical and virtual memory limits for the process or process group. "Memory pressure" eval is based on "scanned/reclaimed pages" ratio, see Linux kernel comments for details:
+This sets up cgroups 'memory_pressure' event file descriptor and subscribes for these events. CGroups subsystem allows us to set physical and virtual memory limits for the process or process group. "Memory pressure" eval is based on "scanned/reclaimed pages" ratio, see Linux kernel comments for details:
 https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/mm/vmpressure.c?id=34e431b0ae398fc54ea69ff85ec700722c9da773
 
 ```/sys/fs/cgroup/memory/cgroup.event_control``` is used to subscribe for events from ```/sys/fs/cgroup/memory/memory.pressure_level``` - this is a standard cgroups mechanism.
@@ -81,18 +81,18 @@ The metics are:
 By default, ```avg10``` (10 seconds averaged) values are used. You can override it using custom option, e.g.  ```-psiAvgMetric="avg60"```
 
 ### PSI (pressure stall information) _triggers_ observer
-This set up PSI 2 event file descriptors and subscribes for the triggers. A trigger describes the maximum cumulative stall time over a specific time window, e.g. 100ms of total stall time within any 500ms window to generate a wakeup event. Triggers are fired when resource pressure exceeds certain thresholds. Please refer to Linux kernel documentation for details:
+This sets up PSI 2 event file descriptors and subscribes for the triggers. A trigger describes the maximum cumulative stall time over a specific time window, e.g. 100ms of total stall time within any 500ms window to generate a wakeup event. Triggers are fired when resource pressure exceeds certain thresholds. Please refer to Linux kernel documentation for details:
 https://www.kernel.org/doc/html/latest/accounting/psi.html#monitoring-for-pressure-thresholds
 
 
 Metric from this observer:
-```psi_trig``` - bit mask ('critical - 'medium'). E.g., in case of 'medium' trigger, the value will be 1, in case of both triggers active, the value will be equal to 3.
+```psi_trig``` - bit mask ('critical - 'medium'). E.g., in case of 'medium' trigger, the value will be 1, in case of both triggers fired, the value will be equal to 3.
 
 This observer may require superuser rights to initialize and run.
 
 Default triggers thresholds settings are ```some 150000 1000000``` and ```full 100000 1000000```, but you can override it using options: ```-psiMediumTrigger="some 200000 1000000" -psiCriticalTrigger="some 300000 1000000"```
 
-And one more option is trigger timeout (in seconds) and it is related to time windows value from thresholds settings. If the triggers doesn't fire once again during the timeout, the bitmask for this trigger is set back to 0. Default value is 5 seconds, you can override it: ```-psiTrigTimeout=2```
+And one more option is a trigger timeout (in seconds) and it is related to time windows value from thresholds settings. If the trigger doesn't fire again during the timeout, the bitmask for this trigger is set back to 0. Default value is 5 seconds, you can override it: ```-psiTrigTimeout=2```
 
 
 ### Allocator
